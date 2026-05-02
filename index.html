@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enquête classe dehors — Résultats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #F5F0E8;
+      font-family: 'Lora', Georgia, serif;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #2C2C2A;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #8C8C89;
+      font-style: italic;
+    }
+
+    /* KPI cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      border: 1.5px solid transparent;
+    }
+
+    .kpi-val {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #5C7A5F;
+    }
+
+    .kpi-lbl {
+      font-size: 11px;
+      color: #8C8C89;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    /* Segmented control */
+    .seg-wrap {
+      background: #E8E4DC;
+      border-radius: 12px;
+      padding: 4px;
+      display: flex;
+      gap: 2px;
+      margin-bottom: 1.5rem;
+      width: 100%;
+    }
+
+    .seg-btn {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 0;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: #5C7A5F;
+      cursor: pointer;
+      transition: all 0.18s;
+      flex: 1;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .seg-btn:hover {
+      background: #DDD9D0;
+    }
+
+    .seg-btn.active {
+      background: #5C7A5F;
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(44, 44, 42, 0.15);
+    }
+
+    /* Sections */
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    .section-title {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #2C2C2A;
+      margin-bottom: 1rem;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #7A9E7E;
+    }
+
+    /* Chart grids */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .chart-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+
+    .chart-card.full { grid-column: 1 / -1; }
+
+    .chart-label {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8C8C89;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .insight {
+      background: #E8F0EA;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 12.5px;
+      color: #3B5C3E;
+      line-height: 1.5;
+      margin-top: 0.75rem;
+      border-left: 3px solid #7A9E7E;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .leg-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #5F5E5A;
+    }
+
+    .leg-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Donut row */
+    .donut-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Pairs card */
+    .pairs-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .pairs-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Verbatims */
+    .verbatim-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .verbatim {
+      background: #fff;
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      border-left: 3px solid #7A9E7E;
+      font-size: 13px;
+      color: #2C2C2A;
+      line-height: 1.55;
+      font-style: italic;
+    }
+
+    .verbatim-author {
+      font-style: normal;
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 11px;
+      color: #8C8C89;
+      margin-top: 6px;
+    }
+
+    /* Conclusion */
+    .conclusion-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .concl-item {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      gap: 0.9rem;
+      align-items: flex-start;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .concl-item:hover { border-color: #7A9E7E; }
+
+    .concl-num {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #C4D4C6;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .concl-title {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #2C2C2A;
+      margin-bottom: 4px;
+    }
+
+    .concl-expand {
+      font-size: 13px;
+      color: #5F5E5A;
+      line-height: 1.5;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .concl-item.open .concl-expand { display: block; }
+
+    .click-hint {
+      font-size: 11px;
+      color: #7A9E7E;
+      margin-bottom: 10px;
+      font-family: 'Montserrat', Arial, sans-serif;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-grid { grid-template-columns: 1fr; }
+      .donut-row { grid-template-columns: 1fr; }
+      .pairs-card { grid-template-columns: 1fr; }
+      .seg-btn { font-size: 10px; padding: 7px 4px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Enquête quantitative — Classe dehors</h1>
+    <p>Mémoire M1 UX/UI · ECV 2025-2026 · Marie Samson · 51 répondants</p>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-val">51</div><div class="kpi-lbl">Répondants</div></div>
+    <div class="kpi"><div class="kpi-val">96%</div><div class="kpi-lbl">Connaissent la classe dehors</div></div>
+    <div class="kpi"><div class="kpi-val">41%</div><div class="kpi-lbl">Pratiquants actifs (21/51)</div></div>
+    <div class="kpi"><div class="kpi-val">75%</div><div class="kpi-lbl">Non-pratiquants motivés (21/28)</div></div>
+  </div>
+
+  <div class="seg-wrap">
+    <button class="seg-btn active" onclick="showSection('profil', this)">Profil</button>
+    <button class="seg-btn" onclick="showSection('nonprat', this)">Non-pratiquants</button>
+    <button class="seg-btn" onclick="showSection('prat', this)">Pratiquants</button>
+    <button class="seg-btn" onclick="showSection('numerique', this)">Numérique</button>
+    <button class="seg-btn" onclick="showSection('croise', this)">Croisées</button>
+    <button class="seg-btn" onclick="showSection('verbatims', this)">Verbatims</button>
+    <button class="seg-btn" onclick="showSection('conclusion', this)">Conclusion</button>
+  </div>
+
+  <!-- PROFIL -->
+  <div id="s-profil" class="section visible">
+    <div class="section-title">Profil du panel (n = 51)</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-label">Niveau d'enseignement</div>
+        <div class="legend">
+          <span class="leg-item"><span class="leg-dot" style="background:#7A9E7E"></span>Élémentaire 65%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#C4D4C6"></span>Maternelle 27%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#D3D1C7"></span>Mixte 8%</span>
+        </div>
+        <div style="position:relative;height:200px"><canvas id="cNiveau" role="img" aria-label="Niveau : 33 élémentaire, 14 maternelle, 4 mixtes">33 élémentaire, 14 maternelle, 4 mixtes.</canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Zone géographique</div>
+        <div class="legend">
+          <span class="leg-item"><span class="leg-dot" style="background:#7A9E7E"></span>Rurale 47%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#C4D4C6"></span>Urbaine 31%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#D3D1C7"></span>Péri-urbaine 22%</span>
+        </div>
+        <div style="position:relative;height:200px"><canvas id="cZone" role="img" aria-label="Zone : 24 rurale, 16 urbaine, 11 péri-urbaine">24 rurale, 16 urbaine, 11 péri-urbaine.</canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="chart-label">Ancienneté dans l'enseignement</div>
+        <div style="position:relative;height:140px"><canvas id="cAnc" role="img" aria-label="12 plus de 25 ans, 32 entre 11-25 ans, 5 entre 3-10 ans, 2 débutants">12 plus de 25 ans, 32 entre 11-25 ans, 5 entre 3-10 ans, 2 débutants.</canvas></div>
+        <div class="insight">Note méthodologique : 86% des répondants ont plus de 11 ans de carrière. Les résultats concernant les jeunes enseignants (n = 7) sont à interpréter avec prudence.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NON-PRATIQUANTS -->
+  <div id="s-nonprat" class="section">
+    <div class="section-title">Segment A - Non-pratiquants (n = 28)</div>
+    <div class="donut-row">
+      <div class="chart-card">
+        <div class="chart-label">Envie de se lancer ?</div>
+        <div class="legend">
+          <span class="leg-item"><span class="leg-dot" style="background:#5C7A5F"></span>Oui, motivés 75%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#D3D1C7"></span>Non 25%</span>
+        </div>
+        <div style="position:relative;height:200px"><canvas id="cEnvie" role="img" aria-label="21 motivés, 7 non">21 motivés, 7 non.</canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Un outil numérique aiderait ?</div>
+        <div class="legend">
+          <span class="leg-item"><span class="leg-dot" style="background:#7A9E7E"></span>Oui 64%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#C4D4C6"></span>Peut-être 29%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#D3D1C7"></span>Non 7%</span>
+        </div>
+        <div style="position:relative;height:200px"><canvas id="cOutil" role="img" aria-label="18 oui, 8 peut-être, 2 non">18 oui, 8 peut-être, 2 non.</canvas></div>
+      </div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <div class="chart-label">Freins principaux cités (2 max par répondant)</div>
+        <div style="position:relative;height:360px"><canvas id="cFreins" role="img" aria-label="Freins : lieu adéquat et ne sait pas commencer en tête à 39%">Freins : lieu adéquat 39%, ne sait pas commencer 39%, préparation 32%.</canvas></div>
+        <div id="frein-detail" class="insight" style="display:none"></div>
+      </div>
+      <div class="pairs-card">
+        <div>
+          <div class="chart-label">Impact perçu du travail en collectif</div>
+          <div style="position:relative;height:200px"><canvas id="cPairs" role="img" aria-label="26 fort impact, 2 peu d'impact">26 fort impact, 2 peu d'impact.</canvas></div>
+        </div>
+        <div class="pairs-right">
+          <div class="legend" style="flex-direction:column">
+            <span class="leg-item"><span class="leg-dot" style="background:#5C7A5F"></span>Fort impact 93%</span>
+            <span class="leg-item"><span class="leg-dot" style="background:#D3D1C7"></span>Peu d'impact 7%</span>
+          </div>
+          <div class="insight" style="margin-top:0">93% estiment que préparer la classe dehors à plusieurs aurait un fort impact sur leur propension à se lancer. La dimension communautaire est un levier de conception prioritaire.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRATIQUANTS -->
+  <div id="s-prat" class="section">
+    <div class="section-title">Segment B - Pratiquants (n = 21)</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-label">Formation avant de démarrer</div>
+        <div class="legend">
+          <span class="leg-item"><span class="leg-dot" style="background:#D3D1C7"></span>Non, autodidacte 67%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#7A9E7E"></span>Oui, formation 33%</span>
+        </div>
+        <div style="position:relative;height:180px"><canvas id="cFormation" role="img" aria-label="14 non, 7 oui">14 non, 7 oui.</canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Facilité de démarrage (1 = très difficile, 5 = très facile)</div>
+        <div style="position:relative;height:180px"><canvas id="cFacilite" role="img" aria-label="1 : 1, 2 : 4, 3 : 14, 4 : 2">1 : 1, 2 : 4, 3 : 14, 4 : 2.</canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="chart-label">Difficultés rencontrées (3 max par répondant)</div>
+        <div style="position:relative;height:340px"><canvas id="cDiff" role="img" aria-label="Préparation 62%, météo 48% en tête des difficultés">Préparation 62%, météo 48%, logistique 29%.</canvas></div>
+        <div id="diff-detail" class="insight" style="display:none"></div>
+      </div>
+      <div class="chart-card full">
+        <div class="chart-label">Ressources utilisées pour se lancer</div>
+        <div style="position:relative;height:160px"><canvas id="cRess" role="img" aria-label="Internet 86%, pairs 76%, livres 52%">Internet 86%, pairs 76%, livres 52%.</canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUMÉRIQUE -->
+  <div id="s-numerique" class="section">
+    <div class="section-title">Tous répondants - rapport au numérique (n = 51)</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-label">Usage actuel du numérique au travail (1 = faible, 5 = fort)</div>
+        <div style="position:relative;height:220px"><canvas id="cUsage" role="img" aria-label="1 : 3, 2 : 5, 3 : 13, 4 : 15, 5 : 13">1 : 3, 2 : 5, 3 : 13, 4 : 15, 5 : 13.</canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Prêt à intégrer un nouvel outil (1 = non, 5 = oui)</div>
+        <div style="position:relative;height:220px"><canvas id="cInteg" role="img" aria-label="1 : 2, 2 : 5, 3 : 7, 4 : 15, 5 : 20">1 : 2, 2 : 5, 3 : 7, 4 : 15, 5 : 20.</canvas></div>
+      </div>
+      <div class="chart-card full">
+        <div class="chart-label">Contribution à une dimension de partage communautaire</div>
+        <div class="legend">
+          <span class="leg-item"><span class="leg-dot" style="background:#7A9E7E"></span>Oui volontiers 22%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#C4D4C6"></span>Oui si rapide 63%</span>
+          <span class="leg-item"><span class="leg-dot" style="background:#D3D1C7"></span>Non 12%</span>
+        </div>
+        <div style="position:relative;height:130px"><canvas id="cContrib" role="img" aria-label="11 oui volontiers, 32 si rapide, 6 non">11 oui volontiers, 32 si rapide, 6 non.</canvas></div>
+        <div class="insight">63% contribueraient uniquement si le temps est minimal. La dimension communautaire doit donc être conçue pour être rapide et non contraignante.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CROISÉES -->
+  <div id="s-croise" class="section">
+    <div class="section-title">Analyses croisées - taux de pratique par profil</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-label">Par zone géographique</div>
+        <div style="position:relative;height:220px"><canvas id="cCroiseZone" role="img" aria-label="Urbaine 56%, rurale 45%, péri-urbaine 18%">Urbaine 56%, rurale 45%, péri-urbaine 18%.</canvas></div>
+        <div class="insight">Contre-intuitivement, les enseignants urbains pratiquent plus (56%) que les ruraux (45%). Les péri-urbains sont les plus frileux (18%).</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Par ancienneté dans la carrière</div>
+        <div style="position:relative;height:220px"><canvas id="cCroiseAnc" role="img" aria-label="25 ans+ : 64%, 11-25 ans : 42%, 3-10 ans : 20%, 0-2 ans : 0%">25 ans+ : 64%, 11-25 ans : 42%, 3-10 ans : 20%, 0-2 ans : 0%.</canvas></div>
+        <div class="insight">L'ancienneté est corrélée positivement avec la pratique. Les jeunes enseignants (3-10 ans) sont les plus frileux - potentiellement surchargés en début de carrière.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERBATIMS -->
+  <div id="s-verbatims" class="section">
+    <div class="section-title">Verbatims libres (8 répondants)</div>
+    <div class="verbatim-list">
+      <div class="verbatim">"Il ne faut pas hésiter à commencer petit. À force de le pratiquer, on peut même improviser car le sac école dehors est toujours prêt."<div class="verbatim-author">Pratiquant(e) - élémentaire</div></div>
+      <div class="verbatim">"L'intérêt d'un nouvel outil numérique serait qu'il soit collaboratif et évolutif, avec mises à jour régulières et peu onéreuses."<div class="verbatim-author">Non-pratiquant(e)</div></div>
+      <div class="verbatim">"Les contenus existants suggèrent souvent des groupes restreints et ne reflètent pas la réalité. Pour une classe de 25 ou 30 élèves, le matériel et l'encadrement deviennent très complexes."<div class="verbatim-author">Non-pratiquant(e) - élémentaire</div></div>
+      <div class="verbatim">"Le numérique ne sert à rien dans l'histoire, mais le compagnonnage avec des personnes expérimentées, oui."<div class="verbatim-author">Non-pratiquant(e)</div></div>
+      <div class="verbatim">"Je pense que les enseignants n'ont pas besoin d'outils, mais de temps et de confiance en eux pour être auteurs de leur pratique. On assiste à la multiplication des plateformes de partage et d'outils en tous genres, mais le problème reste le manque de temps et la surcharge mentale des enseignants."<div class="verbatim-author">Non-pratiquant(e)</div></div>
+      <div class="verbatim">"Faire classe dehors incite les familles à continuer l'aventure. La plupart de mes élèves sont devenus de bons observateurs et très curieux d'apprendre sur la vie qui les entoure."<div class="verbatim-author">Pratiquant(e) - élémentaire</div></div>
+    </div>
+  </div>
+
+  <!-- CONCLUSION -->
+  <div id="s-conclusion" class="section">
+    <div class="section-title">Conclusion - 4 enseignements clés</div>
+    <div class="click-hint">Cliquez sur chaque point pour le développer</div>
+    <div class="conclusion-list">
+      <div class="concl-item" onclick="this.classList.toggle('open')">
+        <div class="concl-num">1</div>
+        <div>
+          <div class="concl-title">L'écart connaissance - pratique est le signal central</div>
+          <div class="concl-expand">96% connaissent la classe dehors, mais seulement 41% la pratiquent. Ce n'est pas un problème d'information - c'est un problème de passage à l'acte. Les freins sont logistiques, pas idéologiques. Aucun outil d'information ne suffira : il faut un levier opérationnel.</div>
+        </div>
+      </div>
+      <div class="concl-item" onclick="this.classList.toggle('open')">
+        <div class="concl-num">2</div>
+        <div>
+          <div class="concl-title">Les non-pratiquants sont des motivés en attente</div>
+          <div class="concl-expand">75% des non-pratiquants ont déjà voulu se lancer. Les deux freins dominants - trouver un lieu (39%) et ne pas savoir par où commencer (39%) - pointent vers un besoin d'orientation initiale, pas de conviction. L'outil peut adresser directement ces deux verrous.</div>
+        </div>
+      </div>
+      <div class="concl-item" onclick="this.classList.toggle('open')">
+        <div class="concl-num">3</div>
+        <div>
+          <div class="concl-title">Deux niveaux de friction bien distincts</div>
+          <div class="concl-expand">Les freins à l'entrée (orientation, lieu) et les difficultés opérationnelles (préparation des séances 62%, météo 48%) sont différents. L'outil doit couvrir ces deux temporalités - le démarrage et la continuité - avec des fonctionnalités distinctes.</div>
+        </div>
+      </div>
+      <div class="concl-item" onclick="this.classList.toggle('open')">
+        <div class="concl-num">4</div>
+        <div>
+          <div class="concl-title">Le numérique est accepté, sous conditions claires</div>
+          <div class="concl-expand">69% se disent prêts à intégrer un nouvel outil. Mais 63% ne contribueraient à une dimension communautaire que si le temps engagé est minimal.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  const P = {
+    vert: '#7A9E7E', vertF: '#5C7A5F', vertC: '#C4D4C6',
+    noir: '#2C2C2A', gris: '#8C8C89', grisL: '#D3D1C7'
+  };
+  const bf = { family: "'Montserrat', Arial, sans-serif", size: 11 };
+  const tc = '#8C8C89', gc = 'rgba(44,44,42,0.07)';
+
+  function dOpts(x = {}) {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, ...(x.plugins || {}) },
+      ...x
+    };
+  }
+
+  function donut(id, data, colors) {
+    new Chart(document.getElementById(id), {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => d.l),
+        datasets: [{ data: data.map(d => d.v), backgroundColor: colors, borderWidth: 0 }]
+      },
+      options: dOpts({
+        cutout: '62%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.label} : ${ctx.parsed} (${Math.round(ctx.parsed / ctx.dataset.data.reduce((a, b) => a + b, 0) * 100)}%)` } }
+        }
+      })
+    });
+  }
+
+  function hbar(id, labels, vals, colors, cb) {
+    return new Chart(document.getElementById(id), {
+      type: 'bar',
+      data: { labels, datasets: [{ data: vals, backgroundColor: colors, borderWidth: 0, borderRadius: 4 }] },
+      options: dOpts({
+        indexAxis: 'y',
+        scales: {
+          x: { grid: { color: gc }, ticks: { color: tc, font: bf, callback: v => v + '%' }, max: Math.max(...vals) + 10 },
+          y: { grid: { display: false }, ticks: { color: tc, font: { ...bf, size: 12 } } }
+        },
+        onClick: cb || null
+      })
+    });
+  }
+
+  function vbar(id, labels, vals, colors) {
+    new Chart(document.getElementById(id), {
+      type: 'bar',
+      data: { labels, datasets: [{ data: vals, backgroundColor: colors, borderWidth: 0, borderRadius: 4 }] },
+      options: dOpts({
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tc, font: bf } },
+          y: { grid: { color: gc }, ticks: { color: tc, font: bf, stepSize: 4 } }
+        }
+      })
+    });
+  }
+
+  // --- Profil ---
+  donut('cNiveau', [{ l: 'Élémentaire', v: 33 }, { l: 'Maternelle', v: 14 }, { l: 'Niveaux mixtes', v: 4 }], [P.vert, P.vertC, P.grisL]);
+  donut('cZone', [{ l: 'Rurale', v: 24 }, { l: 'Urbaine', v: 16 }, { l: 'Péri-urbaine', v: 11 }], [P.vert, P.vertC, P.grisL]);
+  vbar('cAnc', ['25 ans +', '11-25 ans', '3-10 ans', '0-2 ans'], [12, 32, 5, 2], [P.vertF, P.vert, P.vertC, P.grisL]);
+
+  // --- Non-pratiquants ---
+  donut('cEnvie', [{ l: 'Motivés', v: 21 }, { l: 'Non', v: 7 }], [P.vertF, P.grisL]);
+  donut('cOutil', [{ l: 'Oui', v: 18 }, { l: 'Peut-être', v: 8 }, { l: 'Non', v: 2 }], [P.vert, P.vertC, P.grisL]);
+
+  const fL = ['Lieu adéquat', ['Ne sait pas par où', 'commencer'], 'Préparation', 'Logistique', "Manque d'idées", 'Sécurité', 'Administratif', 'Météo'];
+  const fV = [39, 39, 32, 21, 21, 11, 11, 4];
+  const fLstr = ['Lieu adéquat', 'Ne sait pas par où commencer', 'Préparation', 'Logistique', "Manque d'idées", 'Sécurité', 'Administratif', 'Météo'];
+  const fD = {
+    'Lieu adéquat': "39% des non-pratiquants citent la difficulté à trouver un espace accessible depuis l'école. En zone péri-urbaine notamment, ce frein est particulièrement fort.",
+    'Ne sait pas par où commencer': "39% ne savent pas par où commencer. Ce frein pédagogique pointe vers un besoin d'accompagnement pas-à-pas plutôt que de simples ressources.",
+    'Préparation': "32% redoutent la charge de préparation des séances et du matériel. Confirmé par les pratiquants : c'est leur difficulté n°1 une fois lancés (62%).",
+    'Logistique': "21% citent la logistique (déplacement, habillage des enfants). Un frein opérationnel qui diminue une fois la routine installée.",
+    "Manque d'idées": "21% manquent d'idées ou d'inspiration. Une banque de séances adaptées par niveau et saison serait un levier direct.",
+    'Sécurité': "11% citent la sécurité en extérieur. Frein minoritaire qui invalide une idée reçue.",
+    'Administratif': "11% citent les démarches administratives. Frein mineur - rassurer sur la simplicité du cadre réglementaire suffirait.",
+    'Météo': "4% seulement citent la météo comme frein principal avant de se lancer. Elle devient un obstacle opérationnel une fois en pratique (48% chez les pratiquants)."
+  };
+
+  hbar('cFreins', fL, fV, fV.map((v, i) => i < 2 ? P.vertF : i < 3 ? P.vert : P.vertC), (evt, elems) => {
+    if (!elems.length) return;
+    const key = fLstr[elems[0].index];
+    const b = document.getElementById('frein-detail');
+    b.textContent = fD[key] || '';
+    b.style.display = 'block';
+  });
+
+  donut('cPairs', [{ l: 'Fort impact', v: 26 }, { l: "Peu d'impact", v: 2 }], [P.vertF, P.grisL]);
+
+  // --- Pratiquants ---
+  donut('cFormation', [{ l: 'Autodidacte', v: 14 }, { l: 'Formation', v: 7 }], [P.grisL, P.vert]);
+  vbar('cFacilite', ['1', '2', '3', '4', '5'], [1, 4, 14, 2, 0], [P.grisL, P.vertC, P.vert, P.vertF, P.vertF]);
+
+  const dL = ['Préparation', 'Météo', 'Logistique', 'Lieu adéquat', "Manque d'idées", 'Sécurité', 'Pas savoir commencer', 'Administratif'];
+  const dV = [62, 48, 29, 24, 24, 19, 14, 5];
+  const dD = {
+    'Préparation': "62% des pratiquants citent la préparation comme difficulté principale. L'outil doit prioritairement aider à préparer et structurer les séances.",
+    'Météo': "48% gèrent difficilement la météo une fois en pratique. Ce n'est pas un frein à l'entrée (4%) mais un obstacle récurrent. Un module \"alternatives par météo\" serait utile.",
+    'Logistique': "29% trouvent la logistique difficile. Elle diminue avec l'expérience mais reste un point d'attention pour les débutants.",
+    'Lieu adéquat': "24% trouvent difficile de trouver un lieu, même après avoir démarré. Les enseignants urbains s'en sortent mieux que les péri-urbains.",
+    "Manque d'idées": "24% manquent d'idées de séances une fois lancés. Une bibliothèque de séances par discipline et saison est un besoin confirmé.",
+    'Sécurité': "19% ont rencontré des difficultés liées à la sécurité. Plus présent chez les pratiquants que chez les non-pratiquants.",
+    'Pas savoir commencer': "14% ont eu du mal à savoir par où commencer même après avoir décidé de pratiquer. Le premier pas reste le plus difficile.",
+    'Administratif': "5% seulement citent l'administratif comme difficulté réelle. Les démarches sont visiblement plus simples qu'imaginé."
+  };
+
+  hbar('cDiff', dL, dV, dV.map((v, i) => i < 2 ? P.vertF : i < 3 ? P.vert : P.vertC), (evt, elems) => {
+    if (!elems.length) return;
+    const b = document.getElementById('diff-detail');
+    b.textContent = dD[dL[elems[0].index]] || '';
+    b.style.display = 'block';
+  });
+
+  hbar('cRess', ['Internet', 'Pairs pratiquants', 'Livres'], [86, 76, 52], [P.vertF, P.vert, P.vertC]);
+
+  // --- Numérique ---
+  vbar('cUsage', ['1', '2', '3', '4', '5'], [3, 5, 13, 15, 13], [P.grisL, P.vertC, P.vertC, P.vert, P.vertF]);
+  vbar('cInteg', ['1', '2', '3', '4', '5'], [2, 5, 7, 15, 20], [P.grisL, P.vertC, P.vertC, P.vert, P.vertF]);
+  hbar('cContrib', ['Oui volontiers', 'Oui si rapide', 'Non'], [11, 32, 6], [P.vert, P.vertC, P.grisL]);
+
+  // --- Croisées ---
+  new Chart(document.getElementById('cCroiseZone'), {
+    type: 'bar',
+    data: { labels: ['Urbaine', 'Rurale', 'Péri-urbaine'], datasets: [{ data: [56, 45, 18], backgroundColor: [P.vertF, P.vert, P.vertC], borderWidth: 0, borderRadius: 4 }] },
+    options: dOpts({ scales: { x: { grid: { display: false }, ticks: { color: tc, font: bf } }, y: { grid: { color: gc }, ticks: { color: tc, font: bf, callback: v => v + '%' }, max: 70 } } })
+  });
+  new Chart(document.getElementById('cCroiseAnc'), {
+    type: 'bar',
+    data: { labels: ['25 ans +', '11-25 ans', '3-10 ans', '0-2 ans'], datasets: [{ data: [64, 42, 20, 0], backgroundColor: [P.vertF, P.vert, P.vertC, P.grisL], borderWidth: 0, borderRadius: 4 }] },
+    options: dOpts({ scales: { x: { grid: { display: false }, ticks: { color: tc, font: bf } }, y: { grid: { color: gc }, ticks: { color: tc, font: bf, callback: v => v + '%' }, max: 75 } } })
+  });
+
+  // --- Navigation ---
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('s-' + id).classList.add('visible');
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
