@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triangulation des hypothèses - Classe dehors</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #F5F0E8;
+    font-family: 'Lora', Georgia, serif;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .header { margin-bottom: 2rem; }
+  .header h1 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #2C2C2A;
+    margin-bottom: 4px;
+  }
+  .header p {
+    font-size: 14px;
+    color: #8C8C89;
+    font-style: italic;
+  }
+
+  /* SEGMENTED CONTROL */
+  .seg-wrap {
+    background: #E8E4DC;
+    border-radius: 12px;
+    padding: 4px;
+    display: flex;
+    gap: 2px;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .seg-btn {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 8px 0;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: #5C7A5F;
+    cursor: pointer;
+    transition: all 0.18s;
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .seg-btn:hover { background: #DDD9D0; }
+  .seg-btn.active {
+    background: #5C7A5F;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(44,44,42,0.15);
+  }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  .section-title {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #2C2C2A;
+    margin-bottom: 1rem;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #7A9E7E;
+  }
+
+  /* HYPOTHESIS CARD */
+  .hyp-card {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .hyp-head {
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .hyp-head.validee  { background: #E8F0EA; border-left: 4px solid #5C7A5F; }
+  .hyp-head.nuancee  { background: #FDF3E3; border-left: 4px solid #C8881A; }
+  .hyp-head.invalidee { background: #FAE8E8; border-left: 4px solid #9B4040; }
+
+  .badge {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .validee  .badge { background: #5C7A5F; color: #fff; }
+  .nuancee  .badge { background: #C8881A; color: #fff; }
+  .invalidee .badge { background: #9B4040; color: #fff; }
+
+  .hyp-text {
+    font-size: 13px;
+    font-style: italic;
+    color: #2C2C2A;
+    line-height: 1.55;
+  }
+  .hyp-text strong {
+    display: block;
+    font-style: normal;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #8C8C89;
+    margin-bottom: 3px;
+  }
+
+  .hyp-body { padding: 1rem 1.25rem 1.25rem; }
+
+  /* TWO COLUMNS */
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .col-card {
+    background: #F5F0E8;
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .col-label {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #8C8C89;
+    margin-bottom: 10px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid #E8E4DC;
+  }
+
+  /* BIG NUMBER */
+  .big-num {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 1px;
+    margin: 4px 0 1px;
+  }
+  .big-num .n {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: #5C7A5F;
+    line-height: 1;
+  }
+  .big-num .u {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #7A9E7E;
+  }
+  .big-lbl {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 11px;
+    color: #5F5E5A;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  /* PROGRESS BAR */
+  .prog { margin-bottom: 9px; }
+  .prog-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 11px;
+    color: #2C2C2A;
+    margin-bottom: 3px;
+  }
+  .prog-row .pct { font-weight: 700; color: #5C7A5F; }
+  .prog-row .pct.warn { color: #9B4040; }
+  .prog-bg {
+    height: 5px;
+    background: #E8E4DC;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .prog-fill {
+    height: 100%;
+    background: #7A9E7E;
+    border-radius: 3px;
+    transition: width 0.7s ease;
+  }
+  .prog-fill.amber { background: #C8A84A; }
+  .prog-fill.red   { background: #C07878; }
+
+  /* VERBATIM */
+  .verbatim {
+    background: #fff;
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    border-left: 3px solid #7A9E7E;
+    font-size: 12px;
+    color: #2C2C2A;
+    line-height: 1.55;
+    font-style: italic;
+    margin-bottom: 7px;
+  }
+  .verbatim .auth {
+    display: block;
+    font-style: normal;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 10px;
+    color: #8C8C89;
+    margin-top: 5px;
+  }
+
+  /* RECURRENCE */
+  .recurrence {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 11px;
+    color: #5F5E5A;
+  }
+  .dots { display: flex; gap: 3px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #7A9E7E; }
+  .dot.off { background: #E8E4DC; }
+
+  /* NOTE */
+  .note {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 11px;
+    color: #5F5E5A;
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+  .note.warn { color: #9B4040; font-weight: 600; }
+
+  /* SPLIT */
+  .split { display: flex; gap: 6px; margin: 8px 0; }
+  .split-part {
+    flex: 1; text-align: center; padding: 8px 4px; border-radius: 7px;
+    font-family: 'Montserrat', Arial, sans-serif;
+  }
+  .split-part .sn { font-size: 22px; font-weight: 700; line-height: 1; }
+  .split-part .sl { font-size: 10px; margin-top: 2px; }
+  .split-part.g { background: #E8F0EA; color: #3B5C3E; }
+  .split-part.gr { background: #E8E4DC; color: #5F5E5A; }
+
+  /* VERDICT */
+  .verdict {
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 4px;
+  }
+  .verdict.validee   { background: #E8F0EA; border: 1px solid #C4D4C6; }
+  .verdict.nuancee   { background: #FDF3E3; border: 1px solid #E8D8A0; }
+  .verdict.invalidee { background: #FAE8E8; border: 1px solid #E0B8B8; }
+
+  .verdict h4 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .verdict.validee   h4 { color: #5C7A5F; }
+  .verdict.nuancee   h4 { color: #C8881A; }
+  .verdict.invalidee h4 { color: #9B4040; }
+
+  .verdict p { color: #2C2C2A; }
+  .verdict .imp {
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(0,0,0,0.07);
+    color: #5F5E5A;
+  }
+  .verdict .imp strong { color: #2C2C2A; }
+
+  /* VUE GLOBALE */
+  .synth-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .synth-card {
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    font-family: 'Montserrat', Arial, sans-serif;
+  }
+  .synth-card.g  { background: #E8F0EA; border: 1.5px solid #C4D4C6; }
+  .synth-card.am { background: #FDF3E3; border: 1.5px solid #E8D8A0; }
+  .synth-card.r  { background: #FAE8E8; border: 1.5px solid #E0B8B8; }
+  .synth-card .sc { font-size: 42px; font-weight: 700; line-height: 1; }
+  .synth-card.g  .sc { color: #5C7A5F; }
+  .synth-card.am .sc { color: #C8881A; }
+  .synth-card.r  .sc { color: #9B4040; }
+  .synth-card .sl { font-size: 11px; margin-top: 3px; color: #5F5E5A; }
+  .synth-card .sh { font-size: 11px; margin-top: 10px; line-height: 1.8; }
+  .synth-card.g  .sh { color: #3B5C3E; }
+  .synth-card.am .sh { color: #8A5C10; }
+  .synth-card.r  .sh { color: #7A2A2A; }
+
+  /* INSIGHT CARDS */
+  .insight-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+    border-left: 4px solid #7A9E7E;
+  }
+  .insight-card.am { border-left-color: #C8881A; }
+  .insight-num {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #7A9E7E;
+    margin-bottom: 5px;
+  }
+  .insight-card.am .insight-num { color: #C8881A; }
+  .insight-card h3 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2C2C2A;
+    margin-bottom: 6px;
+  }
+  .insight-card p {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 12px;
+    color: #5F5E5A;
+    line-height: 1.6;
+  }
+
+  /* HORS-HYPOTHESES */
+  .hors-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .hors-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+  .hors-card h4 {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #2C2C2A;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #E8E4DC;
+  }
+  .hors-card p {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 11px;
+    color: #5F5E5A;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+  .insight {
+    background: #E8F0EA;
+    border-radius: 7px;
+    padding: 0.7rem 0.9rem;
+    font-size: 12px;
+    color: #3B5C3E;
+    line-height: 1.5;
+    margin-top: 0.6rem;
+    border-left: 3px solid #7A9E7E;
+    font-family: 'Montserrat', Arial, sans-serif;
+  }
+  .tag {
+    display: inline-block;
+    background: #E8F0EA;
+    color: #3B5C3E;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin: 2px 2px 4px 0;
+  }
+
+  @media (max-width: 600px) {
+    .cols, .synth-grid, .hors-grid { grid-template-columns: 1fr; }
+    .seg-btn { font-size: 10px; padding: 7px 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Triangulation des hypothèses - Classe dehors</h1>
+    <p>Mémoire M1 UX/UI - ECV 2025-2026 - Marie Samson - Quanti n=51 | Quali n=8 entretiens</p>
+  </div>
+
+  <div class="seg-wrap">
+    <button class="seg-btn active" onclick="show('synthese',this)">Vue globale</button>
+    <button class="seg-btn" onclick="show('ha',this)">H.A - Ressources</button>
+    <button class="seg-btn" onclick="show('hb',this)">H.B - Communauté</button>
+    <button class="seg-btn" onclick="show('hc',this)">H.C - Séances</button>
+    <button class="seg-btn" onclick="show('hd',this)">H.D - Parties prenantes</button>
+    <button class="seg-btn" onclick="show('he',this)">H.E - Sécurité</button>
+    <button class="seg-btn" onclick="show('hf',this)">H.F - Numérique</button>
+    <button class="seg-btn" onclick="show('hors',this)">Hors-hypothèses</button>
+  </div>
+
+  <!-- VUE GLOBALE -->
+  <div id="synthese" class="section visible">
+    <div class="synth-grid">
+      <div class="synth-card g">
+        <div class="sc">3</div>
+        <div class="sl">Hypothèses validées</div>
+        <div class="sh">H.A - Navigation ressources<br>H.B - Communauté<br>H.F - Numérique médiateur</div>
+      </div>
+      <div class="synth-card am">
+        <div class="sc">2</div>
+        <div class="sl">Hypothèses nuancées</div>
+        <div class="sh">H.D - Parties prenantes<br>H.E - Sécurité</div>
+      </div>
+      <div class="synth-card r">
+        <div class="sc">1</div>
+        <div class="sl">Partiellement invalidée</div>
+        <div class="sh">H.C - Tâches périphériques</div>
+      </div>
+    </div>
+
+    <div class="insight-card">
+      <div class="insight-num">Insight 1</div>
+      <h3>Le vrai frein, c'est l'orientation - pas le manque de contenu</h3>
+      <p>H.A validée par les deux sources : 39% des non-pratiquants citent «ne pas savoir par où commencer» comme frein n°1. Les ressources existent, elles ne sont pas organisées pour guider. L'outil n'est pas une ressource de plus, c'est un agrégateur curatorial.</p>
+    </div>
+    <div class="insight-card am">
+      <div class="insight-num">Insight 2 - Résultat inattendu</div>
+      <h3>La conception des séances est le frein n°1 des pratiquants - pas la logistique</h3>
+      <p>H.C partiellement invalidée : 61% des pratiquants citent la préparation pédagogique comme leur principale difficulté, avant la météo (48%) et la logistique (29%). L'outil doit proposer des séances clés-en-main, pas seulement un accès aux ressources.</p>
+    </div>
+    <div class="insight-card am">
+      <div class="insight-num">Insight 3 - Nuance importante</div>
+      <h3>Le vrai frein de pérennité, c'est les accompagnateurs - pas la direction</h3>
+      <p>H.D nuancée : l'hypothèse ciblait direction et mairie (cités par seulement 10% en quanti). Le vrai obstacle à la pérennité est la mobilisation régulière d'accompagnateurs (parents, ATSEM). Feature de coordination = prioritaire.</p>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">Insight 4</div>
+      <h3>Le collectif conditionne la pérennité, pas seulement le démarrage</h3>
+      <p>H.B validée : 93% des non-pratiquants voient le collectif comme levier. Nuance : 11/21 pratiquants ont démarré seuls - le collectif est moins indispensable pour commencer que pour durer. La dimension collaborative doit cibler l'équipe d'école.</p>
+    </div>
+  </div>
+
+  <!-- H.A -->
+  <div id="ha" class="section">
+    <div class="hyp-card">
+      <div class="hyp-head validee">
+        <div class="badge">Validée</div>
+        <div class="hyp-text"><strong>Hypothèse A</strong>Le principal frein à se lancer n'est pas le manque de ressources, mais le manque d'outils pour naviguer dans les ressources disponibles.</div>
+      </div>
+      <div class="hyp-body">
+        <div class="cols">
+          <div class="col-card">
+            <div class="col-label">Données quantitatives - Non-pratiquants (n=28)</div>
+            <div class="prog">
+              <div class="prog-row"><span>Ne pas savoir par où commencer</span><span class="pct">39%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:39%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Préparation des séances</span><span class="pct">32%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:32%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Manque d'idées</span><span class="pct">21%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:21%"></div></div>
+            </div>
+            <p class="note">Chez les pratiquants rétrospectifs, ce frein tombe à 14% - il se résout en pratiquant.</p>
+          </div>
+          <div class="col-card">
+            <div class="col-label">Données qualitatives - 8 entretiens</div>
+            <div class="recurrence">
+              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot off"></div><div class="dot off"></div></div>
+              <span>Mentionné par 6/8</span>
+            </div>
+            <div class="verbatim">«Il y a beaucoup de ressources. Mais après, c'est de s'y retrouver dans tout ça.»<span class="auth">Nathalie, experte - maternelle</span></div>
+            <div class="verbatim">«Il n'y a pas un endroit où il y a toutes les idées qui nous concernent regroupées.»<span class="auth">Solène, débutante - élémentaire</span></div>
+            <p class="note">Hélène : les ressources sont organisées par thème saisonnier, pas par progression pédagogique - décalage structurel.</p>
+          </div>
+        </div>
+        <div class="verdict validee">
+          <h4>Verdict triangulé</h4>
+          <p>Convergence forte quanti + quali. Le frein n'est pas le manque de ressources mais leur organisation. Les pairs et le bouche-à-oreille restent le canal de navigation le plus efficace - signe que les ressources existantes ne répondent pas au besoin.</p>
+          <div class="imp"><strong>Implication design :</strong> l'outil n'est pas une ressource de plus, c'est un agrégateur curatorial. Son avantage concurrentiel = le filtrage par niveau, saison et programme.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- H.B -->
+  <div id="hb" class="section">
+    <div class="hyp-card">
+      <div class="hyp-head validee">
+        <div class="badge">Validée</div>
+        <div class="hyp-text"><strong>Hypothèse B</strong>L'aspect communautaire (notamment le fait de démarrer ce projet à plusieurs) est un facteur déterminant pour éviter la démotivation.</div>
+      </div>
+      <div class="hyp-body">
+        <div class="cols">
+          <div class="col-card">
+            <div class="col-label">Données quantitatives</div>
+            <div class="big-num"><span class="n">93</span><span class="u">%</span></div>
+            <div class="big-lbl">des non-pratiquants estiment que le collectif aurait un fort impact pour se lancer (26/28)</div>
+            <div class="big-num"><span class="n">71</span><span class="u">%</span></div>
+            <div class="big-lbl">des pratiquants confirment le fort impact du collectif sur la réussite (15/21)</div>
+            <p class="note" style="margin-bottom:6px">Mode de démarrage des pratiquants :</p>
+            <div class="split">
+              <div class="split-part gr"><div class="sn">11</div><div class="sl">Seul(e)</div></div>
+              <div class="split-part g"><div class="sn">10</div><div class="sl">À plusieurs</div></div>
+            </div>
+            <p class="note">Le collectif n'est pas indispensable pour démarrer, mais il conditionne la pérennité.</p>
+          </div>
+          <div class="col-card">
+            <div class="col-label">Données qualitatives - 8 entretiens</div>
+            <div class="recurrence">
+              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot off"></div><div class="dot off"></div></div>
+              <span>Mentionné par 6/8</span>
+            </div>
+            <div class="verbatim">«Quand on était deux, on échangeait les idées, ça faisait gagner du temps et c'était plus motivant.»<span class="auth">Marie D., experte - isolée cette année</span></div>
+            <div class="verbatim">«Je conseille de pas faire ça seule dans une école. Ça donne plus de force et plus de légitimité.»<span class="auth">Hélène, débutante - projet d'école collectif</span></div>
+            <p class="note">Cas révélateur : Elisabeth - formée seule (12h), motivée, n'a pas installé de pratique régulière. La formation sans collectif ne suffit pas.</p>
+          </div>
+        </div>
+        <div class="verdict validee">
+          <h4>Verdict triangulé</h4>
+          <p>Triple convergence. Le collectif est à la fois levier de démarrage et condition de pérennité. Le collectif local (même école) est bien plus efficace que le collectif en ligne, qui s'essouffle rapidement.</p>
+          <div class="imp"><strong>Implication design :</strong> prévoir une dimension collaborative centrée sur l'équipe d'école. L'ATSEM doit être intégrée comme partie prenante à part entière en maternelle.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- H.C -->
+  <div id="hc" class="section">
+    <div class="hyp-card">
+      <div class="hyp-head invalidee">
+        <div class="badge">Partiellement invalidée</div>
+        <div class="hyp-text"><strong>Hypothèse C</strong>Les enseignants n'ont pas besoin d'aide pour créer leurs séances ou les animer - ce sont toutes les tâches périphériques qui représentent une surcharge mentale.</div>
+      </div>
+      <div class="hyp-body">
+        <div class="cols">
+          <div class="col-card">
+            <div class="col-label">Données quantitatives - Difficultés pratiquants (n=21)</div>
+            <div class="prog">
+              <div class="prog-row"><span>Préparation des séances ⚠</span><span class="pct warn">61%</span></div>
+              <div class="prog-bg"><div class="prog-fill red" style="width:61%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Gestion de la météo</span><span class="pct amber">48%</span></div>
+              <div class="prog-bg"><div class="prog-fill amber" style="width:48%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Logistique</span><span class="pct">29%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:29%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Sécurité en extérieur</span><span class="pct">19%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:19%"></div></div>
+            </div>
+            <p class="note warn">La préparation pédagogique est la difficulté n°1, avant la météo et la logistique. H.C est contredite par les données.</p>
+          </div>
+          <div class="col-card">
+            <div class="col-label">Données qualitatives - 8 entretiens</div>
+            <div class="recurrence">
+              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot off"></div><div class="dot off"></div><div class="dot off"></div><div class="dot off"></div></div>
+              <span>H.C confirmée seulement 4/8 (expertes)</span>
+            </div>
+            <div class="verbatim">«Ce qui me manquerait, c'est les programmes de maternelle et en face comment les décliner dans l'école dehors. Un truc simple et clair.»<span class="auth">Marie D., experte - 8 ans de pratique</span></div>
+            <div class="verbatim">«Ah, on a trouvé des glands. Qu'est-ce que je peux faire avec ça ?»<span class="auth">Solène, débutante - élémentaire</span></div>
+            <div class="verbatim">«J'arrive pas à me projeter et à voir ce que je pourrais faire.»<span class="auth">Amélina, non-pratiquante</span></div>
+          </div>
+        </div>
+        <div class="verdict invalidee">
+          <h4>Verdict triangulé - Résultat productif</h4>
+          <p>H.C n'est vraie que pour les expertes (3+ ans, stock de séances constitué). Pour toutes les débutantes et non-pratiquantes, la conception pédagogique est le frein central - plus que la logistique. Les ressources existantes sous-estiment ce besoin.</p>
+          <div class="imp"><strong>Implication design :</strong> l'outil doit proposer des séances clés-en-main filtrées par niveau et programme. Format attendu : fiche succincte, tirets, illustration, lisible en 30 secondes.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- H.D -->
+  <div id="hd" class="section">
+    <div class="hyp-card">
+      <div class="hyp-head nuancee">
+        <div class="badge">Nuancée</div>
+        <div class="hyp-text"><strong>Hypothèse D</strong>Le projet repose sur la motivation personnelle de l'enseignant, mais il aura besoin du soutien d'autres parties prenantes (direction, mairie, parents) pour en garantir la pérennité.</div>
+      </div>
+      <div class="hyp-body">
+        <div class="cols">
+          <div class="col-card">
+            <div class="col-label">Données quantitatives - Freins NP (n=28)</div>
+            <div class="prog">
+              <div class="prog-row"><span>Trouver un lieu adéquat</span><span class="pct">39%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:39%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Logistique</span><span class="pct">21%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:21%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Administratif (direction, mairie)</span><span class="pct amber">10%</span></div>
+              <div class="prog-bg"><div class="prog-fill amber" style="width:10%"></div></div>
+            </div>
+            <p class="note">L'hypothèse ciblait les bons acteurs mais a mal hiérarchisé lesquels. Direction et mairie ne sont pas le vrai obstacle (10% seulement).</p>
+          </div>
+          <div class="col-card">
+            <div class="col-label">Données qualitatives - 8 entretiens</div>
+            <div class="recurrence">
+              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+              <span>Confirmée avec nuance 8/8</span>
+            </div>
+            <div class="verbatim">«Ce qui serait mieux, c'est d'être plus nombreux plus souvent.»<span class="auth">Nathalie, experte - frein n°1 : l'encadrement humain</span></div>
+            <p class="note">Direction et inspection : obstacle levé facilement par un projet pédagogique formel.<br>Vrai frein de pérennité : trouver et fidéliser des accompagnateurs réguliers. Saturation des parents très sollicités par l'école.</p>
+          </div>
+        </div>
+        <div class="verdict nuancee">
+          <h4>Verdict triangulé</h4>
+          <p>L'hypothèse était juste dans son principe (dépendance à d'autres acteurs) mais a mal identifié lesquels. Ce n'est pas la direction qui bloque - c'est la mobilisation régulière d'accompagnateurs.</p>
+          <div class="imp"><strong>Implication design :</strong> feature de coordination et planification des accompagnateurs = prioritaire. Pas de module «convaincre sa direction» - ce n'est pas là que se joue la pérennité.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- H.E -->
+  <div id="he" class="section">
+    <div class="hyp-card">
+      <div class="hyp-head nuancee">
+        <div class="badge">Nuancée</div>
+        <div class="hyp-text"><strong>Hypothèse E</strong>Les enseignants qui hésitent à se lancer craignent une perte de contrôle sur le groupe et une mise en danger de la sécurité des élèves dans un espace non clôturé.</div>
+      </div>
+      <div class="hyp-body">
+        <div class="cols">
+          <div class="col-card">
+            <div class="col-label">Comparaison des freins NP (n=28)</div>
+            <div class="prog">
+              <div class="prog-row"><span>Préparation des séances</span><span class="pct">32%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:32%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Logistique</span><span class="pct">21%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:21%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Sécurité en extérieur</span><span class="pct warn">10%</span></div>
+              <div class="prog-bg"><div class="prog-fill red" style="width:10%"></div></div>
+            </div>
+            <p class="note warn">Dernier frein cité sur 8 propositions. Les guides existants sur-adressent un problème que les enseignants ne vivent pas comme prioritaire.</p>
+          </div>
+          <div class="col-card">
+            <div class="col-label">Données qualitatives - 8 entretiens</div>
+            <div class="recurrence">
+              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot off"></div><div class="dot off"></div><div class="dot off"></div><div class="dot off"></div></div>
+              <span>Mentionné par 4/8 seulement</span>
+            </div>
+            <div class="verbatim">«À l'extérieur, je n'ai jamais été angoissée. Dans la classe, je peux l'être parfois.»<span class="auth">Aurélie, experte - élémentaire</span></div>
+            <div class="verbatim">«Ce n'est pas la peur qu'il arrive quelque chose. C'est la peur qu'ils m'épuisent.»<span class="auth">Yvanne, non-pratiquante</span></div>
+            <p class="note">La vraie crainte = épuisement nerveux (groupe agité en espace ouvert), pas le danger physique. Très personnelle, disparaît après les premières séances.</p>
+          </div>
+        </div>
+        <div class="verdict nuancee">
+          <h4>Verdict triangulé</h4>
+          <p>La peur de sécurité physique existe mais est marginale et représentationnelle. Elle est surtout exprimée par les non-pratiquants et disparaît avec l'expérience. La vraie crainte - l'épuisement nerveux - est beaucoup moins documentée dans les ressources existantes.</p>
+          <div class="imp"><strong>Implication design :</strong> prévoir des séances d'amorce progressives (poser le cadre comportemental avant tout objectif pédagogique), pas des fiches réglementaires sur la sécurité.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- H.F -->
+  <div id="hf" class="section">
+    <div class="hyp-card">
+      <div class="hyp-head validee">
+        <div class="badge">Validée</div>
+        <div class="hyp-text"><strong>Hypothèse F</strong>L'acceptabilité d'un dispositif numérique est conditionnée par sa capacité à s'effacer durant le contact de l'enfant avec le vivant, pour redevenir un support de capitalisation après la séance.</div>
+      </div>
+      <div class="hyp-body">
+        <div class="cols">
+          <div class="col-card">
+            <div class="col-label">Données quantitatives - Tous répondants (n=51)</div>
+            <div class="big-num"><span class="n">69</span><span class="u">%</span></div>
+            <div class="big-lbl">ouverts à intégrer un nouvel outil numérique (score 4-5)</div>
+            <div class="big-num"><span class="n">64</span><span class="u">%</span></div>
+            <div class="big-lbl">des non-pratiquants accepteraient un outil (18/28)</div>
+            <div class="prog" style="margin-top:10px">
+              <div class="prog-row"><span>Oui, si ça ne prend pas trop de temps</span><span class="pct">63%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:63%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Oui volontiers</span><span class="pct">22%</span></div>
+              <div class="prog-bg"><div class="prog-fill" style="width:22%"></div></div>
+            </div>
+            <div class="prog">
+              <div class="prog-row"><span>Non</span><span class="pct amber">12%</span></div>
+              <div class="prog-bg"><div class="prog-fill amber" style="width:12%"></div></div>
+            </div>
+          </div>
+          <div class="col-card">
+            <div class="col-label">Données qualitatives - 8 entretiens</div>
+            <div class="recurrence">
+              <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+              <span>Consensus spontané 8/8</span>
+            </div>
+            <div class="verbatim">«Pour les enfants, pas d'écran. Pour les enseignants, oui.»<span class="auth">Elisabeth, non-pratiquante formée</span></div>
+            <div class="verbatim">«L'outil doit s'adapter aux différents contextes : préparation, séance, restitution.»<span class="auth">Synthèse transversale</span></div>
+            <p class="note">Spectre d'usage large : de Solène (papier++) à Amélina (numérique+++). L'effacement pendant la séance est un consensus pédagogique non sollicité. Usage accepté pendant la séance : photo uniquement.</p>
+          </div>
+        </div>
+        <div class="verdict validee">
+          <h4>Verdict triangulé</h4>
+          <p>Convergence parfaite quanti + quali. L'acceptabilité n'est pas le problème (64-69%). La condition exprimée = «que ça ne prenne pas trop de temps» (63%), ce qui converge avec l'exigence d'effacement pendant la séance.</p>
+          <div class="imp"><strong>Implication design :</strong> l'architecture avant / pendant / après est validée empiriquement. Le mode «pendant» = actions en 1 touche, photo, check rapide. C'est la réponse directe à «pourquoi du numérique pour reconnecter à la nature ?»</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HORS-HYPOTHESES -->
+  <div id="hors" class="section">
+    <p class="section-title">Apprentissages hors-hypothèses</p>
+    <p style="font-family:'Montserrat',Arial,sans-serif;font-size:12px;color:#5F5E5A;margin-bottom:1.2rem;line-height:1.6">Ces enseignements n'étaient pas couverts par les hypothèses de départ. Ils émergent des entretiens et constituent des insights de conception à part entière.</p>
+
+    <div class="hors-grid">
+
+      <div class="hors-card">
+        <h4>Les premières séances ne sont pas des séances d'apprentissage</h4>
+        <p>Toutes les pratiquantes l'ont dit : les 2 ou 3 premières sorties doivent être entièrement consacrées à apprivoiser l'espace et poser le cadre comportemental - sans objectif pédagogique autre. Ce n'est pas du temps perdu, c'est un investissement qui conditionne la qualité de toutes les séances suivantes.</p>
+        <div class="verbatim" style="margin-top:10px">«Il faut accepter de perdre deux, trois séances à poser les limites. C'est plus ça. Sinon ce serait vraiment perdre de l'énergie et puis de l'envie.»<span class="auth">Yvanne, non-pratiquante</span></div>
+        <div class="verbatim">«C'est un apprentissage. Que l'on n'est pas en récréation, mais qu'on va avoir des choses à faire.»<span class="auth">Nathalie, experte</span></div>
+        <div class="insight">L'outil doit proposer un parcours progressif : des séances d'amorce dédiées (rituels, règles, exploration libre) avant les séances d'apprentissage structuré. Cette progressivité rassure aussi les enseignants hésitants - on commence petit, sans pression de résultats.</div>
+        <div style="margin-top:8px"><span class="tag">4/8 - Nathalie, Marie D., Yvanne, Solène</span></div>
+      </div>
+
+      <div class="hors-card">
+        <h4>Le lieu disponible : un frein perçu, pas un frein réel</h4>
+        <p>«Trouver un lieu adéquat» est le frein n°1 cité par les non-pratiquants (39%). Elisabeth illustre parfaitement ce frein : son parc de proximité s'est révélé trop urbanisé pour ses premières séances, et elle n'a pas renouvelé l'expérience. À l'inverse, Nathalie - experte depuis 6 ans - a cartographié mentalement ses espaces et sait exactement où aller selon l'activité prévue.</p>
+        <div class="verbatim" style="margin-top:10px">«Le lieu à trouver pour que ça soit vraiment grand avec de nombreux arbres. C'était trop urbain, trop urbanisé.»<span class="auth">Elisabeth, non-pratiquante - sur La Genette, parc de proximité jugé décevant</span></div>
+        <div class="verbatim">«Pas tant de bâtons à ramasser, de cailloux. Il y avait moins de choses à récolter au niveau nature.»<span class="auth">Elisabeth - sur le même espace</span></div>
+        <div class="verbatim">«Si je veux faire une activité sur les bâtons, je sais où je vais aller trouver le terrain où il y a les bâtons.»<span class="auth">Nathalie, experte - après 6 ans de connaissance de ses espaces</span></div>
+        <div class="insight">Un module «diagnostic de lieu» aiderait l'enseignant à évaluer le potentiel pédagogique de l'espace disponible avant de s'y rendre - plutôt que de découvrir sur place que le lieu n'offre pas assez de «matière». Ce que l'experte a acquis en 6 ans, l'outil peut aider à construire plus vite.</div>
+        <div style="margin-top:8px"><span class="tag">Trouver un lieu : 39% NP (frein n°1)</span><span class="tag">Elisabeth - La Genette, trop urbanisée</span></div>
+      </div>
+
+      <div class="hors-card">
+        <h4>L'enfant devient passeur de nature vers sa famille</h4>
+        <p>Un bénéfice non anticipé, mentionné spontanément par plusieurs expertes : après quelques séances, les enfants transfèrent leurs apprentissages à la maison. Ils reconnaissent un oiseau dans le jardin familial, nomment une plante, guident leurs parents lors d'une balade. La classe dehors atteint ainsi les familles - y compris celles peu sensibles à la nature.</p>
+        <div class="verbatim" style="margin-top:10px">«Il reconnaît un rouge-gorge dans son jardin et l'a dit à ses parents.»<span class="auth">Nathalie, sur un élève après quelques séances</span></div>
+        <div class="verbatim">«Il nous a appris le nom de la plante. Je ne connaissais pas.»<span class="auth">Nathalie, rapportant le retour d'un parent</span></div>
+        <div class="insight">Ce bénéfice indirect confirme et renforce le pivot P1 vers P2 du mémoire : passer par l'école touche aussi les familles, quelle que soit leur sensibilité à la nature. C'est un argument fort pour convaincre les directions et les parents réticents.</div>
+        <div style="margin-top:8px"><span class="tag">2/8 - Nathalie, Marie D.</span></div>
+      </div>
+
+      <div class="hors-card">
+        <h4>La maternelle pratique plus facilement que l'élémentaire</h4>
+        <p>Le programme de maternelle est plus souple et se prête naturellement au dehors (exploration sensorielle, langage, motricité). En élémentaire, chaque séance doit être raccordée à une compétence précise du programme - maths, français, sciences - sous peine d'être perçue comme du temps perdu.</p>
+        <div class="verbatim" style="margin-top:10px">«En maternelle, il n'y a pas ce stress d'avancer dans le programme jour par jour.»<span class="auth">Marie D., experte - maternelle</span></div>
+        <div class="verbatim">«C'est ça qui est compliqué : faire les liens avec tout ce qu'il y a dans les programmes.»<span class="auth">Solène, débutante - CE2/CM1</span></div>
+        <div class="insight">L'outil doit proposer deux parcours distincts. En élémentaire, la fonctionnalité «pont programme / dehors» - une compétence du programme en face de son équivalent en classe dehors - est la feature la plus attendue.</div>
+        <div style="margin-top:8px"><span class="tag">8/8 - différence maternelle / élémentaire mentionnée</span></div>
+      </div>
+
+      <div class="hors-card">
+        <h4>La formation seule ne suffit pas sans le collectif simultané</h4>
+        <p>Elisabeth a suivi 12h de formation pratico-pratique, en est sortie motivée, et n'a pas réussi à installer une pratique régulière - faute de collègues embarqués en même temps. Hélène, formée dans le cadre d'un projet d'école collectif, pratique depuis 3 ans. La variable déterminante n'est pas la formation : c'est le collectif dans lequel elle s'inscrit.</p>
+        <div class="verbatim" style="margin-top:10px">«J'étais la seule dans l'équipe à l'avoir fait.»<span class="auth">Elisabeth, non-pratiquante malgré 12h de formation</span></div>
+        <div class="insight">L'outil peut proposer des ressources de formation intégrées, mais uniquement comme complément à une dynamique collective - jamais comme substitut. L'onboarding idéal embarque plusieurs collègues d'une même école simultanément.</div>
+        <div style="margin-top:8px"><span class="tag">Elisabeth vs Hélène - contraste révélateur</span></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('visible');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
