@@ -1,6 +1,6 @@
 # Enquête classe dehors - Résultats interactifs
 
-Tableau de bord interactif présentant les résultats de l'enquête quantitative menée auprès de 51 enseignants de maternelle et d'élémentaire dans le cadre d'un mémoire de recherche en UX/UI Design.
+Tableau de bord interactif présentant les résultats de l'enquête quantitative menée auprès de 56 enseignants de maternelle et d'élémentaire dans le cadre d'un mémoire de recherche en UX/UI Design.
 
 ## Contexte
 
